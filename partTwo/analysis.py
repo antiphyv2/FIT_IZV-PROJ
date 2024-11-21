@@ -15,23 +15,29 @@ import lxml
 
 
 def load_data(filename : str, ds : str) -> pd.DataFrame:
+
     with zipfile.ZipFile(filename, 'r') as zipFile:
+
+        # Obtain a list of all files in the zip archive
         fileList = zipFile.namelist()
+
+        # Filter only files with name in db argument ending with .xls
         targetedFileNames = [file for file in fileList if file.endswith(f'{ds}.xls')]
-        print(targetedFileNames)
 
         df = []
 
+        # Obtain dataframe from each file and append it to the list
         for file in targetedFileNames:
             with zipFile.open(file) as f:
                 df.extend(pd.read_html(f, encoding="cp1250"))
 
-        # for i, df in enumerate(dataFrame):
-        #     print(f"Table {i}:\n{df}")
 
+        # Concatenate all dataframes into one (ignore index for not using index values from original dataframes)
         df = pd.concat(df, ignore_index=True)
+
+        # Drop unnamed columns containing NaN values
         df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
-        print(f"Table:\n{df}")
+        return df
 # Ukol 2: zpracovani dat
 
 
@@ -60,7 +66,9 @@ if __name__ == "__main__":
     # funkce.
 
     df = load_data("data_23_24.zip", "nehody")
+    print(f"Table1:\n{df}")
     df_consequences = load_data("data_23_24.zip", "nasledky")
+    print(f"Table2:\n{df_consequences}")
     # df2 = parse_data(df, True)
     
     # plot_state(df2, "01_state.png")
