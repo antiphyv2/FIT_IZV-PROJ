@@ -42,7 +42,18 @@ def load_data(filename : str, ds : str) -> pd.DataFrame:
 
 
 def parse_data(df: pd.DataFrame, verbose: bool = False) -> pd.DataFrame:
-    pass
+
+    regionDict = {
+        0: "PHA", 1: "STC", 2: "JHC", 3: "PLK",
+        4: "ULK", 5: "HKK", 6: "JHM", 7: "MSK",
+        14: "OLK", 15: "ZLK", 16: "VYS", 17: "PAK",
+        18: "LBK", 19: "KVK"
+    }
+
+    newDf = pd.DataFrame()
+    newDf["date"] = pd.to_datetime(df["p2a"], format="%d.%m.%Y")
+    newDf["region"] = df["p4a"].map(regionDict)
+    print(newDf)
 
 # Ukol 3: počty nehod v jednotlivých regionech podle stavu vozovky
 def plot_state(df: pd.DataFrame, fig_location: str = None,
@@ -66,10 +77,10 @@ if __name__ == "__main__":
     # funkce.
 
     df = load_data("data_23_24.zip", "nehody")
-    print(f"Table1:\n{df}")
-    df_consequences = load_data("data_23_24.zip", "nasledky")
-    print(f"Table2:\n{df_consequences}")
-    # df2 = parse_data(df, True)
+    # print(f"Table1:\n{df}")
+    # df_consequences = load_data("data_23_24.zip", "nasledky")
+    # print(f"Table2:\n{df_consequences}")
+    df2 = parse_data(df, True)
     
     # plot_state(df2, "01_state.png")
     # plot_alcohol(df2, df_consequences, "02_alcohol.png", True)
