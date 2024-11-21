@@ -6,7 +6,6 @@ import pandas as pd
 import seaborn as sns
 import numpy as np
 import zipfile
-import lxml
 
 # muzete pridat libovolnou zakladni knihovnu ci knihovnu predstavenou na prednaskach
 # dalsi knihovny pak na dotaz
@@ -50,10 +49,15 @@ def parse_data(df: pd.DataFrame, verbose: bool = False) -> pd.DataFrame:
         18: "LBK", 19: "KVK"
     }
 
-    newDf = pd.DataFrame()
-    newDf["date"] = pd.to_datetime(df["p2a"], format="%d.%m.%Y")
-    newDf["region"] = df["p4a"].map(regionDict)
+    newDf = df.copy()
+    newDf["date"] = pd.to_datetime(newDf["p2a"], format="%d.%m.%Y", errors="coerce")
+    newDf["region"] = newDf["p4a"].map(regionDict)
+    newDf = newDf.drop_duplicates(subset='p1', keep=False)
+
+    if(verbose):
+        print(f'new_size={(newDf.memory_usage(deep=True).sum() / (1000 * 1000)):.1f} MB')
     print(newDf)
+    return newDf
 
 # Ukol 3: počty nehod v jednotlivých regionech podle stavu vozovky
 def plot_state(df: pd.DataFrame, fig_location: str = None,
