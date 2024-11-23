@@ -212,10 +212,12 @@ def plot_type(df: pd.DataFrame, fig_location: str = None,
         7: "s vlakem",
         8: "s tramvají",
     }
-
+    dfFiltered = dfFiltered.copy()
     dfFiltered["accidentType"] = dfFiltered["p6"].map(accidentType)
     newDf = pd.pivot_table(dfFiltered, index=["date", "region"], columns="accidentType", values="p6", aggfunc="count", fill_value=0)
-    resampledDf = newDf.groupby("region").resample("M", level="date").sum()
+    # pd.set_option('display.max_rows', None)
+    # print(newDf)
+    resampledDf = newDf.groupby("region").resample("ME", level="date").sum()
     stackedDf = resampledDf.stack().reset_index(name="count")
     print(stackedDf)
 
@@ -232,10 +234,14 @@ def plot_type(df: pd.DataFrame, fig_location: str = None,
         sns.lineplot(data=currentRegion, x="date", y="count", hue="accidentType", ax=axe, palette="tab10")
 
         axe.get_legend().remove()
-
+        
+        axe.set_xlim(pd.Timestamp("2023-01-01"), pd.Timestamp("2024-10-01"))
+        axe.set_ylim(0, None)
         xticks = pd.date_range(start='2023-01-01', end='2024-10-01', freq='2ME')
         axe.set_xticks(xticks)
         axe.set_xticklabels([pd.to_datetime(tm, unit='d').strftime('%m/%y') for tm in xticks])
+
+        
 
         axe.set_title(f'Kraj: {regionList[i]}')
         axe.tick_params(axis='x', rotation=45)
@@ -243,7 +249,8 @@ def plot_type(df: pd.DataFrame, fig_location: str = None,
         axe.set_ylabel("Počet nehod")
 
     # plt.legend(loc="center left", bbox_to_anchor=(1.15, 1.4), title="Druh nehody")
-    plt.tight_layout()
+    # plt.legend(loc="best", bbox_to_anchor=(0, 0), title="Druh nehody", frameon=False)
+    # plt.tight_layout()
     
 
     if fig_location:
