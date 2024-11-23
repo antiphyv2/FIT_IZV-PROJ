@@ -140,17 +140,22 @@ def plot_state(df: pd.DataFrame, fig_location: str = None,
     for i, axe in enumerate(axes):
 
         currentRoadState = roadsWithRegions[roadsWithRegions["roadStates"] == roadStateList[i]]
-        print(currentRoadState)
         sns.barplot(data=currentRoadState, x="region", y="count", ax=axe, palette="crest", hue="count")
         sns.move_legend(axe, "upper left")
 
-        axe.set_title(roadStateList[i])
+        axe.set_facecolor('#f0f0f0')
+        axe.set_title(f'Stav povrchu vozovky: {roadStateList[i]}')
         axe.tick_params(axis='x', rotation=45)
         axe.set_xlabel("Kraj")
         axe.set_ylabel("Počet nehod")
 
     plt.tight_layout()
-    plt.show()
+    
+    if(fig_location):
+        plt.savefig(fig_location)
+    if(show_figure):
+        plt.show()
+    
 
 # Ukol4: alkohol a následky v krajích
 def plot_alcohol(df: pd.DataFrame, df_consequences : pd.DataFrame, 
