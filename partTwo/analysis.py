@@ -199,7 +199,58 @@ def plot_alcohol(df: pd.DataFrame, df_consequences : pd.DataFrame,
 # Ukol 5: Druh nehody (srážky) v čase
 def plot_type(df: pd.DataFrame, fig_location: str = None,
               show_figure: bool = False):
-    pass
+    
+    dfFiltered = df[df["region"].isin(["OLK", "MSK", "JHM", "ZLK"])]
+
+    accidentType = {
+        1: "s jedoucím nekolejovým vozidlem",
+        2: "s vozidlem zaparkovaným nebo odstaveným",
+        3: "s pevnou překážkou",
+        4: "s chodcem",
+        5: "s lesní zvěří",
+        6: "s domácím zvířetem",
+        7: "s vlakem",
+        8: "s tramvají",
+    }
+
+    dfFiltered["accidentType"] = dfFiltered["p6"].map(accidentType)
+    newDf = pd.pivot_table(dfFiltered, index=["date", "region"], columns="accidentType", values="p6", aggfunc="count", fill_value=0)
+    resampledDf = newDf.groupby("region").resample("M", level="date").sum()
+    stackedDf = resampledDf.stack().reset_index(name="count")
+    print(stackedDf)
+
+    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+    axes = axes.flatten()
+    
+
+    fig.suptitle("Počet jednotlivých typů srážek ve vybraných krajích")
+
+    regionList = stackedDf["region"].unique()
+    for i, axe in enumerate(axes):
+
+        currentRegion = stackedDf[stackedDf["region"] == regionList[i]]
+        sns.lineplot(data=currentRegion, x="date", y="count", hue="accidentType", ax=axe, palette="tab10")
+
+        axe.get_legend().remove()
+
+        xticks = pd.date_range(start='2023-01-01', end='2024-10-01', freq='2ME')
+        axe.set_xticks(xticks)
+        axe.set_xticklabels([pd.to_datetime(tm, unit='d').strftime('%m/%y') for tm in xticks])
+
+        axe.set_title(f'Kraj: {regionList[i]}')
+        axe.tick_params(axis='x', rotation=45)
+        axe.set_xlabel("")
+        axe.set_ylabel("Počet nehod")
+
+    # plt.legend(loc="center left", bbox_to_anchor=(1.15, 1.4), title="Druh nehody")
+    plt.tight_layout()
+    
+
+    if fig_location:
+        plt.savefig(fig_location)
+
+    if show_figure:
+        plt.show()
 
 
 if __name__ == "__main__":
