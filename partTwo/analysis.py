@@ -141,8 +141,8 @@ def plot_state(df: pd.DataFrame, fig_location: str = None,
 
         currentRoadState = roadsWithRegions[roadsWithRegions["roadStates"] == roadStateList[i]]
         sns.barplot(data=currentRoadState, x="region", y="count", ax=axe, palette="crest", hue="count")
-        sns.move_legend(axe, "upper left")
 
+        axe.legend(title="Počet", loc="upper left")
         axe.set_facecolor('#f0f0f0')
         axe.set_title(f'Stav povrchu vozovky: {roadStateList[i]}')
         axe.tick_params(axis='x', rotation=45)
@@ -150,7 +150,7 @@ def plot_state(df: pd.DataFrame, fig_location: str = None,
         axe.set_ylabel("Počet nehod")
 
     plt.tight_layout()
-    
+
     if(fig_location):
         plt.savefig(fig_location)
     if(show_figure):
