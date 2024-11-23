@@ -141,6 +141,7 @@ def plot_state(df: pd.DataFrame, fig_location: str = None,
 
         currentRoadState = roadsWithRegions[roadsWithRegions["roadStates"] == roadStateList[i]]
         sns.barplot(data=currentRoadState, x="region", y="count", ax=axe, palette="crest", hue="count")
+        sns.set_style("darkgrid")
 
         axe.legend(title="Počet", loc="upper left")
         axe.set_facecolor('#f0f0f0')
