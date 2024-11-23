@@ -161,7 +161,40 @@ def plot_state(df: pd.DataFrame, fig_location: str = None,
 # Ukol4: alkohol a následky v krajích
 def plot_alcohol(df: pd.DataFrame, df_consequences : pd.DataFrame, 
                  fig_location: str = None, show_figure: bool = False):
-    pass
+    
+    dfMerged = pd.merge(df, df_consequences, on="p1", validate="one_to_many")
+
+    injury = {
+        1: "usmrcení",
+        2: "těžké zranění",
+        3: "lehké zranění",
+        4: "bez zranění",
+    }
+    
+
+    dfMerged["driver_hurt"] = dfMerged["p59a"].apply(lambda x: "řidič" if x == 1 else "spolujezdec")
+    dfMerged["consequences"] = dfMerged["p59g"].map(injury)
+    dfAlcoholOnly = dfMerged[dfMerged["p11"] >= 3]
+    # print(dfAlcoholOnly)
+    groupedDf = dfAlcoholOnly.groupby(["region", "consequences", "driver_hurt"]).size().reset_index(name="count")
+    print(groupedDf)
+
+    g = sns.catplot(data=groupedDf, x="region", y="count", hue="driver_hurt", col="consequences", kind="bar", palette="tab10", col_wrap=2, sharey=False)
+    sns.set_style("darkgrid")
+
+    g.set_titles("Následek nehody: {col_name}")
+    g.figure.set_facecolor('#f0f0f0')
+    g.figure.suptitle("Počet nehod pod vlivem alkoholu v jednotlivých krajích dle následků nehody")
+    g.legend.set_title("")
+    g.set_ylabels("Počet nehod")
+    g.set_xlabels("Kraj")
+    g.tick_params(axis='x', rotation=45)
+    g.tight_layout()
+    if fig_location:
+        plt.savefig(fig_location)
+
+    if show_figure:
+        plt.show()
 
 # Ukol 5: Druh nehody (srážky) v čase
 def plot_type(df: pd.DataFrame, fig_location: str = None,
