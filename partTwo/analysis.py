@@ -59,44 +59,44 @@ def parse_data(df: pd.DataFrame, verbose: bool = False) -> pd.DataFrame:
     return newDf
 
 # Ukol 3: počty nehod v jednotlivých regionech podle stavu vozovky
-def plot_state(df: pd.DataFrame, fig_location: str = None,
-                    show_figure: bool = False):
+# def plot_state(df: pd.DataFrame, fig_location: str = None,
+#                     show_figure: bool = False):
 
-    roadStates = {
-        1: "povrch suchý",
-        2: "povrch suchý",
-        3: "povrch mokrý",
-        4: "na vozovce je bláto",
-        5: "na vozovce je náledí, ujetý sníh",
-        6: "na vozovce je náledí, ujetý sníh",
-    }
+#     roadStates = {
+#         1: "povrch suchý",
+#         2: "povrch suchý",
+#         3: "povrch mokrý",
+#         4: "na vozovce je bláto",
+#         5: "na vozovce je náledí, ujetý sníh",
+#         6: "na vozovce je náledí, ujetý sníh",
+#     }
 
-    df["roadStates"] = df["p16"].map(roadStates)
+#     df["roadStates"] = df["p16"].map(roadStates)
     # roadsWithRegions = df.groupby(["region", "roadStates"]).size().unstack(level="roadStates")
-    roadsWithRegions = df.groupby(["region", "roadStates"]).size().reset_index(name="count")
-    print(roadsWithRegions)
+    # roadsWithRegions = df.groupby(["region", "roadStates"]).size().reset_index(name="count")
+    # print(roadsWithRegions)
     # print(grouped)
 
 
     
-    fig, axes = plt.subplots(2, 2, figsize=(10, 8))
-    axes = axes.flatten()
+    # fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+    # axes = axes.flatten()
     
     # plt.subplots_adjust(hspace=0.3)
     # plt.subplots_adjust(wspace=0.3)
 
-    fig.suptitle("Počtet nehod v jednotlivých krajích dle stavu vozovky")
+    # fig.suptitle("Počtet nehod v jednotlivých krajích dle stavu vozovky")
 
-    roadStateList = roadsWithRegions["roadStates"].unique()
-    for i, axe in enumerate(axes):
+    # roadStateList = roadsWithRegions["roadStates"].unique()
+    # for i, axe in enumerate(axes):
 
-        currentRoadState = roadsWithRegions[roadsWithRegions["roadStates"] == roadStateList[i]]
-        sns.barplot(data=currentRoadState, x="region", y="count", ax=axe, palette="Blues", hue="count")
+    #     currentRoadState = roadsWithRegions[roadsWithRegions["roadStates"] == roadStateList[i]]
+    #     sns.barplot(data=currentRoadState, x="region", y="count", ax=axe, palette="Blues", hue="count")
 
-        axe.set_title(roadStateList[i])
-        axe.tick_params(axis='x', rotation=45)
-        axe.set_xlabel("Kraj")
-        axe.set_ylabel("Počet nehod")
+    #     axe.set_title(roadStateList[i])
+    #     axe.tick_params(axis='x', rotation=45)
+    #     axe.set_xlabel("Kraj")
+    #     axe.set_ylabel("Počet nehod")
 
         
 
@@ -112,6 +112,43 @@ def plot_state(df: pd.DataFrame, fig_location: str = None,
 
     # g.tight_layout()
     # plt.subplots_adjust(hspace=0.2)
+    # plt.tight_layout()
+    # plt.show()
+
+def plot_state(df: pd.DataFrame, fig_location: str = None,
+                    show_figure: bool = False):
+
+    roadStates = {
+        1: "povrch suchý",
+        2: "povrch suchý",
+        3: "povrch mokrý",
+        4: "na vozovce je bláto",
+        5: "na vozovce je náledí, ujetý sníh",
+        6: "na vozovce je náledí, ujetý sníh",
+    }
+
+    df["roadStates"] = df["p16"].map(roadStates)
+    roadsWithRegions = df.groupby(["region", "roadStates"]).size().reset_index(name="count")
+
+    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+    axes = axes.flatten()
+    
+
+    fig.suptitle("Počet nehod v jednotlivých krajích dle stavu vozovky")
+
+    roadStateList = roadsWithRegions["roadStates"].unique()
+    for i, axe in enumerate(axes):
+
+        currentRoadState = roadsWithRegions[roadsWithRegions["roadStates"] == roadStateList[i]]
+        print(currentRoadState)
+        sns.barplot(data=currentRoadState, x="region", y="count", ax=axe, palette="crest", hue="count")
+        sns.move_legend(axe, "upper left")
+
+        axe.set_title(roadStateList[i])
+        axe.tick_params(axis='x', rotation=45)
+        axe.set_xlabel("Kraj")
+        axe.set_ylabel("Počet nehod")
+
     plt.tight_layout()
     plt.show()
 
