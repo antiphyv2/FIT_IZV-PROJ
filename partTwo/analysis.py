@@ -200,6 +200,7 @@ def plot_alcohol(df: pd.DataFrame, df_consequences : pd.DataFrame,
 def plot_type(df: pd.DataFrame, fig_location: str = None,
               show_figure: bool = False):
     
+    #Filter only 4 chosen regions
     dfFiltered = df[df["region"].isin(["OLK", "MSK", "JHM", "ZLK"])]
 
     accidentType = {
@@ -212,53 +213,63 @@ def plot_type(df: pd.DataFrame, fig_location: str = None,
         7: "s vlakem",
         8: "s tramvají",
     }
+
+    #Copy the dataframe to avoid SettingWithCopyWarning
     dfFiltered = dfFiltered.copy()
+
+    #Map the accident type to the dataframe's new column
     dfFiltered["accidentType"] = dfFiltered["p6"].map(accidentType)
-    newDf = pd.pivot_table(dfFiltered, index=["date", "region"], columns="accidentType", values="p6", aggfunc="count", fill_value=0)
-    # pd.set_option('display.max_rows', None)
-    # print(newDf)
-    resampledDf = newDf.groupby("region").resample("ME", level="date").sum()
-    stackedDf = resampledDf.stack().reset_index(name="count")
-    print(stackedDf)
 
-    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
-    axes = axes.flatten()
-    
+    #Create a pivot table with date and region as a multiindex
+    dfPivoted = pd.pivot_table(dfFiltered, index=["date", "region"], columns="accidentType", values="p6", aggfunc="count", fill_value=0)
 
-    fig.suptitle("Počet jednotlivých typů srážek ve vybraných krajích")
+    #Use downsampling to get the data in monthly intervals
+    dfResampled = dfPivoted.groupby("region").resample("ME", level="date").sum()
 
-    regionList = stackedDf["region"].unique()
-    for i, axe in enumerate(axes):
+    #Stack the dataframe to get the data in the right format for plotting
+    dfToPlot = dfResampled.stack().reset_index(name="count")
+    # print(dfToPlot)
 
-        currentRegion = stackedDf[stackedDf["region"] == regionList[i]]
-        sns.lineplot(data=currentRegion, x="date", y="count", hue="accidentType", ax=axe, palette="tab10")
+    #Create a relplot with "line" kind to plot the data in different regions
+    g = sns.relplot(data=dfToPlot, x="date", y="count", hue="accidentType", col="region", kind="line", palette="tab10", col_wrap=2)
 
-        axe.get_legend().remove()
-        
-        axe.set_xlim(pd.Timestamp("2023-01-01"), pd.Timestamp("2024-10-01"))
-        axe.set_ylim(0, None)
-        xticks = pd.date_range(start='2023-01-01', end='2024-10-01', freq='2ME')
-        axe.set_xticks(xticks)
-        axe.set_xticklabels([pd.to_datetime(tm, unit='d').strftime('%m/%y') for tm in xticks])
+    #Move the legend to the right side of the subgraphs
+    sns.move_legend(g, "center right", title="Druh nehody", bbox_to_anchor=(1.26, 0.5))
 
-        
+    #Set the title of the whole figure
+    g.figure.suptitle("Počet jednotlivých typů srážek ve vybraných krajích")
 
-        axe.set_title(f'Kraj: {regionList[i]}')
-        axe.tick_params(axis='x', rotation=45)
-        axe.set_xlabel("")
-        axe.set_ylabel("Počet nehod")
+    #Set the title of each subgraph
+    g.set_titles("Kraj: {col_name}")
 
-    # plt.legend(loc="center left", bbox_to_anchor=(1.15, 1.4), title="Druh nehody")
-    # plt.legend(loc="best", bbox_to_anchor=(0, 0), title="Druh nehody", frameon=False)
-    # plt.tight_layout()
-    
+    #set y axe label
+    g.set_ylabels("Počet nehod")
 
+    #Set the x axe labes to empty
+    g.set_xlabels("")
+
+    #Set the xtics with two months interval
+    xticks = pd.date_range(start='2023-01-01', end='2024-10-01', freq='2ME')
+
+    #Set the x axe limit for each subgraph and convert the xticks to the right format
+    for ax in g.axes.flat:
+        ax.set_xlim(pd.Timestamp("2023-01-01"), pd.Timestamp("2024-10-01"))
+        ax.tick_params(axis='x', labelbottom=True, rotation=45)
+        #Taken from IZV lectures
+        ax.set_xticks(xticks)
+        ax.set_xticklabels([pd.to_datetime(tm, unit='d').strftime('%m/%y') for tm in xticks])
+
+
+    #Use tight_layout to avoid overlapping of the subgraphs
+    plt.tight_layout()
+
+    #Save the figure if the location is given
     if fig_location:
         plt.savefig(fig_location)
 
+    #show the figure if True
     if show_figure:
         plt.show()
-
 
 if __name__ == "__main__":
     # zde je ukazka pouziti, tuto cast muzete modifikovat podle libosti
