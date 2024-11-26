@@ -13,7 +13,7 @@ import zipfile
 # Ukol 1: nacteni dat ze ZIP souboru
 
 
-def load_data(filename : str, ds : str) -> pd.DataFrame:
+def load_data(filename: str, ds: str) -> pd.DataFrame:
 
     with zipfile.ZipFile(filename, 'r') as zipFile:
 
