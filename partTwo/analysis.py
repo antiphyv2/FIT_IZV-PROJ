@@ -9,9 +9,10 @@ import numpy as np
 import zipfile
 
 
-def load_data(filename : str, ds : str) -> pd.DataFrame:
+def load_data(filename: str, ds: str) -> pd.DataFrame:
     """
-    Concatenates specified .xls files from the given zip file and returns them as a single dataframe
+    Concatenates specified .xls files from the given zip file
+    and returns them as a single dataframe
     :param filename: string containing path to the zip file
     :param ds: string containing the suffix of the files to be processed
     :return: pandas dataframe containing the concatenated data
@@ -32,13 +33,13 @@ def load_data(filename : str, ds : str) -> pd.DataFrame:
             with zipFile.open(file) as f:
                 df.extend(pd.read_html(f, encoding="cp1250"))
 
-
         # Concatenate all dataframes into one (ignore index for not using index values from original dataframes)
         df = pd.concat(df, ignore_index=True)
 
         # Drop unnamed columns containing NaN values
         df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
         return df
+
 
 def parse_data(df: pd.DataFrame, verbose: bool = False) -> pd.DataFrame:
     """
@@ -56,7 +57,7 @@ def parse_data(df: pd.DataFrame, verbose: bool = False) -> pd.DataFrame:
         18: "LBK", 19: "KVK"
     }
 
-    #Create a new dataframe which is a copy of the original dataframe
+    # Create a new dataframe which is a copy of the original dataframe
     newDf = df.copy()
 
     # Create new column with date in datetime format
@@ -69,12 +70,12 @@ def parse_data(df: pd.DataFrame, verbose: bool = False) -> pd.DataFrame:
     newDf = newDf.drop_duplicates(subset='p1', keep=False)
 
     # If verbose, print deep memory usage of the dataframe
-    if(verbose):
+    if verbose:
         print(f'new_size={(newDf.memory_usage(deep=True).sum() / (1000 * 1000)):.1f} MB')
     return newDf
 
-def plot_state(df: pd.DataFrame, fig_location: str = None,
-                    show_figure: bool = False):
+
+def plot_state(df: pd.DataFrame, fig_location: str = None, show_figure: bool = False):
     """
     Plots four barplots showing the number of accidents based on road state in each region
     :param df: pandas dataframe containing the data
@@ -118,7 +119,7 @@ def plot_state(df: pd.DataFrame, fig_location: str = None,
     maybe there is an option of creating custom hue scale for each subgraph, but this option of iterating over axes
     and plotting each subplot separately with its hue seemed more clear to me. Thanks for understanding.
     """
-    
+
     # Iterate over all subplots (roadStates)
     for i, axe in enumerate(axes):
 
@@ -134,13 +135,13 @@ def plot_state(df: pd.DataFrame, fig_location: str = None,
 
         # Set the legend title and location
         axe.legend(title="Počet", loc="upper left", fontsize="small")
-        
+
         # Set the title of the subplot based on road state
         axe.set_title(f'Stav povrchu vozovky: {roadStateList[i]}')
 
         # Rotate x axis labels for better readability
         axe.tick_params(axis='x', rotation=45)
-        
+
         # Set labels for x and y axis based on subplot position
         axe.set_xlabel("Kraj" if i >= 2 else "")
         axe.set_ylabel("Počet nehod" if i % 2 == 0 else "")
@@ -149,14 +150,15 @@ def plot_state(df: pd.DataFrame, fig_location: str = None,
     plt.tight_layout()
 
     # Save the figure if location is provided
-    if(fig_location):
+    if fig_location:
         plt.savefig(fig_location)
 
     # If True, show the figure
-    if(show_figure):
+    if show_figure:
         plt.show()
 
-def plot_alcohol(df: pd.DataFrame, df_consequences : pd.DataFrame, 
+
+def plot_alcohol(df: pd.DataFrame, df_consequences: pd.DataFrame,
                  fig_location: str = None, show_figure: bool = False):
     """
     Plots four seaborn catplots showing the number of accidents
@@ -166,7 +168,7 @@ def plot_alcohol(df: pd.DataFrame, df_consequences : pd.DataFrame,
     :param fig_location: string containing the path where the figure should be saved
     :param show_figure: if True, shows the figure
     """
-    
+
     # Merge the dataframes based on p1 column with relation one to many
     dfMerged = pd.merge(df, df_consequences, on="p1", validate="one_to_many")
 
@@ -177,7 +179,7 @@ def plot_alcohol(df: pd.DataFrame, df_consequences : pd.DataFrame,
         3: "lehké zranění",
         4: "bez zranění",
     }
-    
+
     # Create a column driver_hurt based on p59a column value (1 - driver, 2 - passenger)
     dfMerged["driver_hurt"] = dfMerged["p59a"].apply(lambda x: "řidič" if x == 1 else "spolujezdec")
 
@@ -201,14 +203,14 @@ def plot_alcohol(df: pd.DataFrame, df_consequences : pd.DataFrame,
 
     # Set the tittle of each subplot based on the consequence
     g.set_titles("Následek nehody: {col_name}")
-    
+
     # Remove the legend title
     g.legend.set_title("")
 
     # Set the labels for x and y axis
     g.set_xlabels("Kraj")
     g.set_ylabels("Počet nehod")
-    
+
     # Rotate x axis labels for better readability
     g.tick_params(axis='x', rotation=45)
 
@@ -223,6 +225,7 @@ def plot_alcohol(df: pd.DataFrame, df_consequences : pd.DataFrame,
     if show_figure:
         plt.show()
 
+
 def plot_type(df: pd.DataFrame, fig_location: str = None,
               show_figure: bool = False):
     """
@@ -231,8 +234,8 @@ def plot_type(df: pd.DataFrame, fig_location: str = None,
     :param fig_location: string containing the path where the figure should be saved
     :param show_figure: if True, shows the figure
     """
-    
-    #Filter only 4 chosen regions
+
+    # Filter only 4 chosen regions
     dfFiltered = df[df["region"].isin(["OLK", "MSK", "JHM", "ZLK"])]
 
     accidentType = {
@@ -246,69 +249,69 @@ def plot_type(df: pd.DataFrame, fig_location: str = None,
         8: "s tramvají",
     }
 
-    #Copy the dataframe to avoid SettingWithCopyWarning
+    # Copy the dataframe to avoid SettingWithCopyWarning
     dfFiltered = dfFiltered.copy()
 
-    #Map the accident type to the dataframe's new column
+    # Map the accident type to the dataframe's new column
     dfFiltered["accidentType"] = dfFiltered["p6"].map(accidentType)
 
-    #Create a pivot table with date and region as a multiindex
+    # Create a pivot table with date and region as a multiindex
     dfPivoted = pd.pivot_table(dfFiltered, index=["date", "region"], columns="accidentType", values="p6", aggfunc="count", fill_value=0)
 
-    #Use downsampling to get the data in monthly intervals
+    # Use downsampling to get the data in monthly intervals
     dfResampled = dfPivoted.groupby("region").resample("ME", level="date").sum()
 
-    #Stack the dataframe to get the data in the right format for plotting
+    # Stack the dataframe to get the data in the right format for plotting
     dfToPlot = dfResampled.stack().reset_index(name="count")
 
-    #Create a relplot with "line" kind to plot the data in different regions
-    g = sns.relplot(data=dfToPlot, x="date", y="count", hue="accidentType", col="region", kind="line", palette="tab10",
-                    col_wrap=2, height= 3.5 * 11/9, aspect=1/(11/9))
-    
-    #Move the legend to the right side of the subgraphs
-    sns.move_legend(g, "center right", title="Druh nehody", bbox_to_anchor=(1.33, 0.5))
+    # Create a relplot with "line" kind to plot the data in different regions
+    g = sns.relplot(data=dfToPlot, x="date", y="count", hue="accidentType", col="region", kind="line", palette="tab10", col_wrap=2)
 
-    #Set the title of the whole figure
+    # Move the legend to the right side of the subgraphs
+    sns.move_legend(g, "center right", title="Druh nehody", bbox_to_anchor=(1.26, 0.5))
+
+    # Set the title of the whole figure
     g.figure.suptitle("Počet jednotlivých typů srážek ve vybraných krajích")
 
-    #Set the title of each subgraph
+    # Set the title of each subgraph
     g.set_titles("Kraj: {col_name}")
 
-    #set y axe label
+    # Set y axe label
     g.set_ylabels("Počet nehod")
 
-    #Set the x axe labes to empty
+    # Set the x axe labes to empty
     g.set_xlabels("")
 
-    #Set the xtics with two months interval
+    # Set the xtics with two months interval
     xticks = pd.date_range(start='2023-01-01', end='2024-10-01', freq='2ME')
 
-    #Set the x axe limit for each subgraph and convert the xticks to the right format
+    # Set the x axe limit for each subgraph and convert the xticks to the right format
     for ax in g.axes.flat:
         ax.set_xlim(pd.Timestamp("2023-01-01"), pd.Timestamp("2024-10-01"))
         ax.tick_params(axis='x', labelbottom=True, rotation=45)
-        #Taken from IZV lectures to convert xticks to time from the preview
+        # Taken from IZV lectures to convert xticks to time from the preview
         ax.set_xticks(xticks)
         ax.set_xticklabels([pd.to_datetime(tm, unit='d').strftime('%m/%y') for tm in xticks])
 
-
-    #Use tight_layout to avoid overlapping of the subgraphs
+    # Use tight_layout to avoid overlapping of the subgraphs
     plt.tight_layout()
 
-    #Save the figure if the location is given
+    # Save the figure if the location is given
     if fig_location:
         plt.savefig(fig_location, bbox_inches="tight")
+
+    # Show the figure if True
+    if show_figure:
+        plt.show()
+
 
 if __name__ == "__main__":
     # zde je ukazka pouziti, tuto cast muzete modifikovat podle libosti
     # skript nebude pri testovani pousten primo, ale budou volany konkreni
     # funkce.
-
     df = load_data("data_23_24.zip", "nehody")
     df_consequences = load_data("data_23_24.zip", "nasledky")
-
     df2 = parse_data(df, True)
-    
     plot_state(df2, "01_state.png")
     plot_alcohol(df2, df_consequences, "02_alcohol.png", True)
     plot_type(df2, "03_type.png")
