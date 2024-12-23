@@ -8,21 +8,116 @@ import contextily
 import sklearn.cluster
 import numpy as np
 
+
 def make_geo(df_accidents: pd.DataFrame, df_locations: pd.DataFrame) -> geopandas.GeoDataFrame:
-    
-    #Konvertovani dataframe do geopandas.GeoDataFrame se spravnym kodovani Pozor na mozne prohozeni d a e!
-    pass
+    """
+    Create a GeoDataFrame from accident and location dataframes.
+
+    :param df_accidents: DataFrame with accident data
+    :param df_locations: DataFrame with location data
+    """
+    # Sort out only accidents in South Moravian Region
+    df_accidents = df_accidents[df_accidents['p4a'] == 6]
+
+    # Merge the two dataframes based on accident ID
+    newDf = pd.merge(df_accidents, df_locations, on='p1')
+
+    # Filter out rows with missing coordinates
+    newDf = newDf[newDf['d'].notna() & newDf['e'].notna()]
+
+    # Copy the dataframe to avoid SettingWithCopyWarning
+    filteredDf = newDf.copy()
+
+    # Swap columns if d is smaller than e (x < y)
+    filteredDf[['d', 'e']] = filteredDf[['d', 'e']].where(filteredDf['d'] >= filteredDf['e'], filteredDf[['e', 'd']].values)
+
+    # Create a GeoDataFrame from points in previous dataframe using Krovak projection
+    geoDf = geopandas.GeoDataFrame(filteredDf, geometry=geopandas.points_from_xy(filteredDf.d, filteredDf.e), crs='EPSG:5514')
+
+    return geoDf
+
 
 def plot_geo(gdf: geopandas.GeoDataFrame, fig_location: str = None,
              show_figure: bool = False):
-    # Vykresleni grafu s nehodami s vlivem alogolu (4>) v kraji  """
-    pass
+    """
+    Plot two subgraphs of accidents under the influence of alcohol in South Moravian Region in January and July.
+
+    :param gdf: GeoDataFrame for plotting
+    :param fig_location: Path to save the figure
+    :param show_figure: If True, show the figure
+    """
+    # Copy original DataFrame to avoid SettingWithCopyWarning
+    dfAlcoholOnly = gdf.copy()
+
+    # Filter out only accidents where alcohol was involved
+    dfAlcoholOnly = dfAlcoholOnly[dfAlcoholOnly["p11"] >= 4]
+
+    # Create new column with a month of the accident
+    dfAlcoholOnly["month"] = pd.to_datetime(dfAlcoholOnly["p2a"], format="%d.%m.%Y").dt.month
+
+    # Reproject the data to GPS coordinates
+    dfAlcoholOnly = dfAlcoholOnly.to_crs(epsg=4326)
+
+    # Get the bounds of the data
+    minX, minY, maxX, maxY = dfAlcoholOnly.total_bounds
+    xRange = maxX - minX
+    yRange = maxY - minY
+
+    # Apply zoom
+    minX = minX + xRange * 0.1
+    maxX = maxX - xRange * 0.3
+    # minY = minY + yRange * 0.1
+    maxY = maxY - yRange * 0.17
+
+    # Create a figure with two subgraphs
+    fig, axes = plt.subplots(1, 2, figsize=(16, 16))
+
+    # Plot each month in specified subgraph
+    dfAlcoholOnly[dfAlcoholOnly["month"] == 1].plot(ax=axes[0], color='red', markersize=10, label="Leden")
+    dfAlcoholOnly[dfAlcoholOnly["month"] == 7].plot(ax=axes[1], color='red', markersize=10, label="Červenec")
+
+    # Set parameters for each subgraph
+    for i, ax in enumerate(axes):
+
+        # Set the title and labels
+        ax.set_title(f'JHM kraj pod vlivem alkoholu - ({"Leden" if i == 0 else "Červenec"})')
+        ax.set_xlabel("Nadmořská šířka")
+        ax.set_ylabel("Nadmořská výška")
+
+        # Set the bounds of the plot
+        ax.set_xlim(minX, maxX)
+        ax.set_ylim(minY, maxY)
+
+        # Set ticks on both axes to show degrees
+        xticks = ax.get_xticks()
+        yticks = ax.get_yticks()
+        ax.set_xticks(xticks)
+        ax.set_yticks(yticks)
+        ax.set_xticklabels([f'{xtick:.1f}°' for xtick in xticks])
+        ax.set_yticklabels([f'{ytick:.1f}°' for ytick in yticks])
+
+        # ax.set_aspect('equal')
+
+        # Add basemap
+        contextily.add_basemap(ax, crs=dfAlcoholOnly.crs.to_string(), alpha=0.9)
+
+    # Tight layout to prevent overlapping
+    fig.tight_layout()
+
+    # If path is specified, save the figure
+    if fig_location:
+        plt.savefig(fig_location, bbox_inches='tight')
+
+    # If True, show the figure
+    if show_figure:
+        plt.show()
 
 
 def plot_cluster(gdf: geopandas.GeoDataFrame, fig_location: str = None,
                  show_figure: bool = False):
     # Vykresleni grafu s lokalitou vsech nehod v kraji shlukovanych do clusteru
     pass
+
 
 if __name__ == "__main__":
     # zde muzete delat libovolne modifikace
