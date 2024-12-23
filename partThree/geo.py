@@ -122,7 +122,6 @@ def plot_cluster(gdf: geopandas.GeoDataFrame, fig_location: str = None,
     :param fig_location: Path to save the figure
     :param show_figure: If True, show the figure
     """
-
     # Copy original DataFrame to avoid SettingWithCopyWarning
     newDf = gdf.copy()
 
@@ -139,7 +138,7 @@ def plot_cluster(gdf: geopandas.GeoDataFrame, fig_location: str = None,
     The method chosen for clustering is KMeans in MiniBatchKMeans variant (faster than classic KMeans). It was presented on lectures
     and when tried on the dataset, I found a solution correspondning with reference solution. The number of clusters was set to 8.
     """
-
+    
     # Apply KMeans clustering for the coordinates
     db = sklearn.cluster.MiniBatchKMeans(n_clusters=8).fit(coordinates)
 
@@ -153,7 +152,7 @@ def plot_cluster(gdf: geopandas.GeoDataFrame, fig_location: str = None,
     accidentClusters['geometry'] = accidentClusters.geometry.convex_hull
 
     # Create a figure
-    plt.figure(figsize=(16, 12))
+    plt.figure(figsize=(15, 12))
     ax = plt.gca()
 
     # Set the title
@@ -163,13 +162,10 @@ def plot_cluster(gdf: geopandas.GeoDataFrame, fig_location: str = None,
     newDf.plot(ax=ax, color='tab:red', alpha=0.35)
 
     # Plot each cluster as a polygon with color corresponding to the number of accidents in the cluster
-    accidentClusters.plot(ax=ax, column='cnt', legend=True, cmap='viridis', alpha=0.5, legend_kwds={'label': "Počet nehod v úseku", 'orientation': "horizontal", 'shrink': 0.85, 'pad': 0.01})
-    # accidentClusters.plot(ax=ax, column='cnt', cmap='viridis', alpha=0.5)
-
-    # colorBar = ax.get_figure().colorbar(ax.get_children()[1], ax=ax, orientation='horizontal', label="Počet nehod v úseku")
+    accidentClusters.plot(ax=ax, column='cnt', legend=True, cmap='viridis', alpha=0.5, legend_kwds={'label': "Počet nehod v úseku", 'orientation': "horizontal", 'shrink': 0.91, 'pad': 0.01})
 
     # Add the background map
-    contextily.add_basemap(ax, crs=newDf.crs.to_string(), alpha=0.9)
+    contextily.add_basemap(ax, crs=newDf.crs.to_string(), alpha=0.9, zoom=9)
 
     # Remove x and y axis with labels
     ax.axis('off')
@@ -188,8 +184,6 @@ def plot_cluster(gdf: geopandas.GeoDataFrame, fig_location: str = None,
     # If True, show the figure
     if show_figure:
         plt.show()
-
-    pass
 
 
 if __name__ == "__main__":
