@@ -115,7 +115,80 @@ def plot_geo(gdf: geopandas.GeoDataFrame, fig_location: str = None,
 
 def plot_cluster(gdf: geopandas.GeoDataFrame, fig_location: str = None,
                  show_figure: bool = False):
-    # Vykresleni grafu s lokalitou vsech nehod v kraji shlukovanych do clusteru
+    """
+    Plot accidents caused by wild animals in clusters.
+
+    :param gdf: GeoDataFrame for plotting created by make_geo function
+    :param fig_location: Path to save the figure
+    :param show_figure: If True, show the figure
+    """
+
+    # Copy original DataFrame to avoid SettingWithCopyWarning
+    newDf = gdf.copy()
+
+    # Filter out only accidents caused by wild animals
+    newDf = newDf[newDf["p10"] == 4]
+
+    # Reproject the data to Web Mercator
+    newDf = newDf.to_crs(epsg=3857)
+
+    # Create a coordinate matrix
+    coordinates = np.dstack([newDf.geometry.x, newDf.geometry.y]).reshape(-1, 2)
+
+    """
+    The method chosen for clustering is KMeans in MiniBatchKMeans variant (faster than classic KMeans). It was presented on lectures
+    and when tried on the dataset, I found a solution correspondning with reference solution. The number of clusters was set to 8.
+    """
+
+    # Apply KMeans clustering for the coordinates
+    db = sklearn.cluster.MiniBatchKMeans(n_clusters=8).fit(coordinates)
+
+    # Create new column with labels for each cluster
+    newDf['cluster'] = db.labels_
+
+    # Use dissolve to merge the clusters, count number of accidents in each cluster and save it to new column
+    accidentClusters = newDf.dissolve(by='cluster', aggfunc={"p1": "count"}).rename(columns={"p1": "cnt"})
+
+    # Add geometry column with convex hull for each cluster
+    accidentClusters['geometry'] = accidentClusters.geometry.convex_hull
+
+    # Create a figure
+    plt.figure(figsize=(16, 12))
+    ax = plt.gca()
+
+    # Set the title
+    ax.set_title("Nehody v JHM kraji zaviněné lesní zvěří")
+
+    # Plot each accident as a point
+    newDf.plot(ax=ax, color='tab:red', alpha=0.35)
+
+    # Plot each cluster as a polygon with color corresponding to the number of accidents in the cluster
+    accidentClusters.plot(ax=ax, column='cnt', legend=True, cmap='viridis', alpha=0.5, legend_kwds={'label': "Počet nehod v úseku", 'orientation': "horizontal", 'shrink': 0.85, 'pad': 0.01})
+    # accidentClusters.plot(ax=ax, column='cnt', cmap='viridis', alpha=0.5)
+
+    # colorBar = ax.get_figure().colorbar(ax.get_children()[1], ax=ax, orientation='horizontal', label="Počet nehod v úseku")
+
+    # Add the background map
+    contextily.add_basemap(ax, crs=newDf.crs.to_string(), alpha=0.9)
+
+    # Remove x and y axis with labels
+    ax.axis('off')
+
+    # Limit the x and y axes to remove accidents outside the region (2 of them)
+    ax.set_xlim(right=(1.98e6))
+    ax.set_ylim(top=(6.39e6))
+
+    # Tight layout to prevent overlapping
+    plt.tight_layout()
+
+    # If path is specified, save the figure
+    if fig_location:
+        plt.savefig(fig_location, bbox_inches='tight')
+
+    # If True, show the figure
+    if show_figure:
+        plt.show()
+
     pass
 
 
