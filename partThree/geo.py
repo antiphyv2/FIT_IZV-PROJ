@@ -1,6 +1,7 @@
 #!/usr/bin/python3.10
 # coding=utf-8
-# %%%
+# Author> Samuel Hejnicek (xhejni00)
+
 import pandas as pd
 import geopandas
 import matplotlib.pyplot as plt
@@ -66,7 +67,6 @@ def plot_geo(gdf: geopandas.GeoDataFrame, fig_location: str = None,
     # Apply zoom
     minX = minX + xRange * 0.1
     maxX = maxX - xRange * 0.3
-    # minY = minY + yRange * 0.1
     maxY = maxY - yRange * 0.17
 
     # Create a figure with two subgraphs
@@ -138,7 +138,7 @@ def plot_cluster(gdf: geopandas.GeoDataFrame, fig_location: str = None,
     The method chosen for clustering is KMeans in MiniBatchKMeans variant (faster than classic KMeans). It was presented on lectures
     and when tried on the dataset, I found a solution correspondning with reference solution. The number of clusters was set to 8.
     """
-    
+
     # Apply KMeans clustering for the coordinates
     db = sklearn.cluster.MiniBatchKMeans(n_clusters=8).fit(coordinates)
 
@@ -192,8 +192,8 @@ if __name__ == "__main__":
     df_locations = pd.read_pickle("locations.pkl.gz")
     gdf = make_geo(df_accidents, df_locations)
 
-    plot_geo(gdf, "geo1.png", True)
-    plot_cluster(gdf, "geo2.png", True)
+    plot_geo(gdf, "geo1.png", False)
+    plot_cluster(gdf, "geo2.png", False)
 
     # testovani splneni zadani
     import os
