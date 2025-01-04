@@ -96,8 +96,6 @@ def plot_geo(gdf: geopandas.GeoDataFrame, fig_location: str = None,
         ax.set_xticklabels([f'{xtick:.1f}°' for xtick in xticks])
         ax.set_yticklabels([f'{ytick:.1f}°' for ytick in yticks])
 
-        # ax.set_aspect('equal')
-
         # Add basemap
         contextily.add_basemap(ax, crs=dfAlcoholOnly.crs.to_string(), alpha=0.9)
 
