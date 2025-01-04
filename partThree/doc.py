@@ -208,10 +208,10 @@ def compute_data(df_accidents: pd.DataFrame, df_consequences: pd.DataFrame) -> p
             'roadType': 'Typ vozovky',
             'road_accident_counts': 'Počet nehod',
             'dominant_animal': 'Nejčastější typ zvířete (NTZ)',
-            'dominant_animal_percentage': 'Poměr nehod s NTZ',
+            'dominant_animal_percentage': 'Poměr nehod (NTZ)',
             'dominant_visibility': 'Nejčastější denní doba (NDD)',
             'dominant_weather': 'Nejčastější počasí',
-            'dominant_visibility_percentage': 'Poměr nehod s NDD',
+            'dominant_visibility_percentage': 'Poměr nehod (NDD)',
         },
         inplace=True
     )
