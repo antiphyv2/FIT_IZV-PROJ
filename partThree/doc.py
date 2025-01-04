@@ -7,14 +7,13 @@ import pandas as pd
 import seaborn as sns
 import numpy as np
 
-def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
-    df_animals = df.copy()
-    df_animals = df_animals[df_animals['p8a'] > 0]
-    return df_animals
-
 
 def plot_animal_hours(df: pd.DataFrame):
-    
+    """
+    Create a bar plot of the number of accidents caused by animals in each hour.
+
+    :param df: pandas dataframe containing data
+    """
     # Create a copy of the dataframe to avoid SettingWithCopyWarning
     plotDf = df.copy()
 
@@ -37,7 +36,7 @@ def plot_animal_hours(df: pd.DataFrame):
     palette = sns.color_palette("muted", len(count_data))
 
     # Use a barplot to visualize the data
-    sns.barplot(data=count_data, x='time', y='count', color=palette[0]) #, palette='viridis', hue='count')
+    sns.barplot(data=count_data, x='time', y='count', color=palette[0])
 
     # Set the title of the plot
     plt.title('Počet nehod způsobených zvířaty v denních hodinách')
@@ -51,9 +50,15 @@ def plot_animal_hours(df: pd.DataFrame):
 
 
 def plot_animal_type(df: pd.DataFrame):
+    """
+    Create a pie chart of the animal types involved in accidents.
 
+    :param df: pandas dataframe containing data
+    """
+    # Create a copy of the dataframe to avoid SettingWithCopyWarning
     plotDf = df.copy()
 
+    # Filter out non wild animal types
     plotDf = plotDf[plotDf['p8a'] < 13]
 
     wild_animal_map = {
@@ -80,21 +85,22 @@ def plot_animal_type(df: pd.DataFrame):
     # Create a palette
     palette = sns.color_palette("muted", len(accident_counts))
 
-    # Plot the pie chart
+    # Create a figure and axis
     fig, ax = plt.subplots()
-    wedges, texts, autotexts = ax.pie(
+
+    # Plot the pie chart
+    ax.pie(
         accident_counts,
         labels=accident_counts.index,
         autopct='%1.1f%%',
         startangle=20,
-        labeldistance=1.1,  # Move labels further from the center
-        wedgeprops={'edgecolor': 'black'},  # Add edge color to wedges
+        labeldistance=1.1,
+        wedgeprops={'edgecolor': 'black'},
         colors=palette
     )
 
     # Equal aspect ratio ensures that pie is drawn as a circle.
     ax.axis('equal')
-
 
     # Set the title of the plot
     plt.title('Nehody dle typu divokého zvířete')
@@ -103,21 +109,13 @@ def plot_animal_type(df: pd.DataFrame):
     plt.savefig("fig2.png")
 
 
+def create_table(df_animals: pd.DataFrame):
+    """
+    Create a table with aggregated data (road types, animals, daytime) for the given dataframe.
 
-def compute_data(df_accidents: pd.DataFrame, df_consequences: pd.DataFrame) -> pd.DataFrame:
-
-    df_animals = filter_dataframe(df_accidents)
-
-    # Print number of accidens
-    print(f'Celkový počet nehod za uplynulé 2 roky: {len(df_accidents)}')
-
-    # Percentage of accidents where animals were involved
-    print(f'Procento nehod se zvířaty: {len(df_animals) / len(df_accidents) * 100:.2f}%')
-
-    # Percentage of accidents caused by wild animals
-    print(f'Procento nehod způsobených divokými zvířaty: {round(len(df_animals[df_animals["p8a"] < 13]) / len(df_animals) * 100)}%')
-
-    roadMap = {
+    :param df: pandas dataframe containing data to be aggregated
+    """
+    road_map = {
         0: "dálnice",
         1: "silnice 1. třídy",
         2: "silnice 2. třídy",
@@ -154,7 +152,7 @@ def compute_data(df_accidents: pd.DataFrame, df_consequences: pd.DataFrame) -> p
         22: "jiné zvíře",
     }
 
-    visibilityMap = {
+    visibility_map = {
         1: "ve dne",
         2: "ve dne",
         3: "ve dne",
@@ -164,45 +162,25 @@ def compute_data(df_accidents: pd.DataFrame, df_consequences: pd.DataFrame) -> p
         7: "v noci",
     }
 
-    roadDirectionMap = {
-        1: "přímý úsek",
-        2: "přímý úsek",
-        3: "zatáčka",
-        4: "křižovatka",
-        5: "křižovatka",
-        6: "křižovatka",
-        7: "kruhový objezd",
-    }    
-
     # Map the road type to the dataframe new column
-    df_animals['roadType'] = df_animals['p36'].map(roadMap)
+    df_animals['roadType'] = df_animals['p36'].map(road_map)
 
     # Map the visibility to the dataframe new column
-    df_animals['visibility'] = df_animals['p19'].map(visibilityMap)
+    df_animals['visibility'] = df_animals['p19'].map(visibility_map)
 
     # Map the animal type to the dataframe new column
     df_animals['animalType'] = df_animals['p8a'].map(animal_map)
 
-    # Map the road direction to the dataframe new column
-    df_animals['roadDirection'] = df_animals['p28'].map(roadDirectionMap)
-
-    # Print most common roadDirection
-    print(f'Nejčastější směr vozovky při nehodě se zvířetem: {df_animals["roadDirection"].value_counts().idxmax()}')
-
-    # Print percentage of accidents in most common roadDirection
-    print(f'Procento nehod ve nejčastějším směru vozovky: {int(round(df_animals["roadDirection"].value_counts().max() / len(df_animals) * 100))}%')
-
-
     # Create a table with aggregated data
     table = df_animals.groupby('roadType').agg(
-        road_accident_counts = ('roadType', 'size'),
-        dominant_animal = ('animalType', lambda x: x.value_counts().idxmax()),
-        dominant_animal_percentage = ('p8a', lambda x: f'{int(round(x.value_counts().max() / len(x) * 100))} %'),
-        dominant_visibility = ('visibility', lambda x: x.value_counts().idxmax()),
-        dominant_visibility_percentage = ('visibility', lambda x: f'{int(round(x.value_counts().max() / len(x) * 100))} %'),
+        road_accident_counts=('roadType', 'size'),
+        dominant_animal=('animalType', lambda x: x.value_counts().idxmax()),
+        dominant_animal_percentage=('p8a', lambda x: f'{int(round(x.value_counts().max() / len(x) * 100))} %'),
+        dominant_visibility=('visibility', lambda x: x.value_counts().idxmax()),
+        dominant_visibility_percentage=('visibility', lambda x: f'{int(round(x.value_counts().max() / len(x) * 100))} %'),
     ).reset_index()
 
-    # Rename columns for better readability
+    # Rename columns to use them in the report
     table.rename(
         columns={
             'roadType': 'Typ vozovky',
@@ -215,9 +193,68 @@ def compute_data(df_accidents: pd.DataFrame, df_consequences: pd.DataFrame) -> p
         },
         inplace=True
     )
+
+    # Print the table
     print(table.to_string(index=False))
 
-    return df_animals
+
+def print_statistics(df_animals: pd.DataFrame, df_accidents: pd.DataFrame):
+    """
+    Print statistics computed for given dataframe.
+
+    :param df_animals: pandas dataframe containing dataframe with accidents
+    :param df_accidents: pandas dataframe containing dataframe with all accidents
+    """
+    # Print number of accidens
+    print(f'Celkový počet nehod za uplynulé 2 roky: {len(df_accidents)}')
+
+    # Percentage of accidents where animals were involved
+    print(f'Procento nehod se zvířaty: {len(df_animals) / len(df_accidents) * 100:.2f}%')
+
+    # Percentage of accidents caused by wild animals
+    print(f'Procento nehod způsobených divokými zvířaty: {round(len(df_animals[df_animals["p8a"] < 13]) / len(df_animals) * 100)}%')
+
+    road_direction_map = {
+        1: "přímý úsek",
+        2: "přímý úsek",
+        3: "zatáčka",
+        4: "křižovatka",
+        5: "křižovatka",
+        6: "křižovatka",
+        7: "kruhový objezd",
+    }
+
+    # Map the road direction to the dataframe new column
+    df_animals['roadDirection'] = df_animals['p28'].map(road_direction_map)
+
+    # Print most common roadDirection
+    print(f'Nejčastější směr vozovky při nehodě se zvířetem: {df_animals["roadDirection"].value_counts().idxmax()}')
+
+    # Print percentage of accidents in most common roadDirection
+    print(f'Procento nehod ve nejčastějším směru vozovky: {int(round(df_animals["roadDirection"].value_counts().max() / len(df_animals) * 100))}%')
+
+
+def create_report(df_accidents: pd.DataFrame):
+    """
+    Create graphs and prints computed data for the given dataframe for usage in report.
+
+    :param df_accidents: pandas dataframe containing data
+    """
+    # Keep only accidents where animals were involved
+    df_animals = df_accidents.copy()
+    df_animals = df_animals[df_animals['p8a'] > 0]
+
+    # Print statistics for the given dataframe
+    print_statistics(df_animals, df_accidents)
+
+    # Create a table with aggregated data (road types, animals, daytime) for the report
+    create_table(df_animals)
+
+    # Create graph with number of accidents caused by animals in each hour
+    plot_animal_hours(df_animals)
+
+    # Create pie chart with animal types involved in accidents
+    plot_animal_type(df_animals)
 
 
 if __name__ == "__main__":
@@ -225,6 +262,4 @@ if __name__ == "__main__":
     df_accidents = pd.read_pickle("accidents.pkl.gz")
     df_consequences = pd.read_pickle("consequences.pkl.gz")
 
-    df_animals = compute_data(df_accidents, df_consequences)
-    plot_animal_hours(df_animals)
-    plot_animal_type(df_animals)
+    create_report(df_accidents)
