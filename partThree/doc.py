@@ -184,12 +184,11 @@ def create_table(df_animals: pd.DataFrame):
     table.rename(
         columns={
             'roadType': 'Typ vozovky',
-            'road_accident_counts': 'Počet nehod',
-            'dominant_animal': 'Nejčastější typ zvířete (NTZ)',
-            'dominant_animal_percentage': 'Poměr nehod (NTZ)',
-            'dominant_visibility': 'Nejčastější denní doba (NDD)',
-            'dominant_weather': 'Nejčastější počasí',
-            'dominant_visibility_percentage': 'Poměr nehod (NDD)',
+            'road_accident_counts': 'Počet nehod se zvířaty',
+            'dominant_animal': 'Nejčastější typ zvířete',
+            'dominant_animal_percentage': 'Poměr nehod s daným zvířetem',
+            'dominant_visibility': 'Nejčastější denní doba',
+            'dominant_visibility_percentage': 'Poměr nehod v dané době',
         },
         inplace=True
     )
