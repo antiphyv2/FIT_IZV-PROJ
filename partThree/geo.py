@@ -81,8 +81,8 @@ def plot_geo(gdf: geopandas.GeoDataFrame, fig_location: str = None,
 
         # Set the title and labels
         ax.set_title(f'JHM kraj pod vlivem alkoholu - ({"Leden" if i == 0 else "Červenec"})')
-        ax.set_xlabel("Nadmořská šířka")
-        ax.set_ylabel("Nadmořská výška")
+        ax.set_xlabel("Zeměpisná délka")
+        ax.set_ylabel("Zeměpisná šířka")
 
         # Set the bounds of the plot
         ax.set_xlim(minX, maxX)
@@ -171,9 +171,6 @@ def plot_cluster(gdf: geopandas.GeoDataFrame, fig_location: str = None,
     # Limit the x and y axes to remove accidents outside the region (2 of them)
     ax.set_xlim(right=(1.98e6))
     ax.set_ylim(top=(6.39e6))
-
-    # Tight layout to prevent overlapping
-    plt.tight_layout()
 
     # If path is specified, save the figure
     if fig_location:

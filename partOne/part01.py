@@ -2,11 +2,6 @@
 """
 IZV cast1 projektu
 Autor: xhejni00
-
-Detailni zadani projektu je v samostatnem projektu e-learningu.
-Nezapomente na to, ze python soubory maji dane formatovani.
-
-Muzete pouzit libovolnou vestavenou knihovnu a knihovny predstavene na prednasce
 """
 from bs4 import BeautifulSoup
 import requests
@@ -67,7 +62,7 @@ def generate_graph(a: List[float], show_figure: bool = False, save_path: str | N
             pi_labels.append(f'{index // 2}π')
         else:
             #Latex formatting for fractions
-            pi_labels.append(rf'$\frac{{{index}}}{2}π$')
+            pi_labels.append(rf'$\frac{{{index}}}{{2}}π$')
     
     #Set x axies labels and the limit
     plt.xticks(pi_ticks, pi_labels)
@@ -216,6 +211,6 @@ def download_data() -> Dict[str, List[Any]]:
 
 if __name__ == "__main__":
     distance(np.array([[-1, -1, -1], [0, 1, 2], [3, -3, 1], [-2, -2, 0], [4, 5, 6]]), np.array([[1, 1, 1], [0, 0, 0], [3, 3, 3], [-2, 1, 2], [0, 0, 0]]))
-    generate_graph([7,4,3], False, 'cs.png')
-    # generate_sinus()
+    generate_graph([7,4,3], False, 'generate_graph.png')
+    generate_sinus(False, 'generate_sinus.png')
     # download_data()
